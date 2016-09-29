@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+'''
+share the examples by using ML to help solve the telecom equipment issue
+
+这个项目主要是利用机器学习技术来帮助通信设备供应商来解决设备配置的检查问题。
+由于现实网络中的复杂度比较高。需要检查的项目类型比较多，传统的判断语句的实现复杂度非常高
+'''
+
 import numpy as np
 from sklearn import tree
 import xlrd
