@@ -1,0 +1,83 @@
+# -*- coding: utf-8 -*-
+import numpy as np
+from sklearn import tree
+import xlrd
+from xlutils.copy import copy
+
+
+def strnum(flag):
+    '''the main function is to change the string to data values'''
+    sum=0
+    for i in flag:
+       m=ord(i)
+       sum=sum+m
+       #sum=sum*100+m
+    #print sum
+    return sum
+
+def traintree(test_data,train_data_path,table,sheet_num):
+    ''''' test data read '''
+    data   = []
+    labels = []
+    with open(train_data_path) as ifile:
+            for line in ifile:
+                tokens = line.strip().split('	')#split flag
+                for i in range(0,len(tokens)-1):# the last one is the labels
+                    tokens[i]=strnum(tokens[i])
+                data.append([float(tk) for tk in tokens[:-1]])
+                labels.append(tokens[-1])
+    x=np.array(data)
+    labels = np.array(labels)
+    y = np.zeros(labels.shape)
+
+    ''''' change labels to 0/1/2 '''
+    y[labels=='OK']=1
+    y[labels=='Unknown']=2
+
+    ''''' training data by use tree decision entropy '''
+    clf = tree.DecisionTreeClassifier(criterion='entropy')
+    clf.fit(x,y)
+    ''''' show the weight '''
+    print(clf.feature_importances_)
+    '''input the test data'''
+    data22=np.array(test_data)
+    answer=clf.predict(data22)
+    table1=copy(table)
+    table2=table1.get_sheet(sheet_num)
+    i=1
+    for an in answer:
+        if an==0:
+            table2.write(i,6,'NOK')
+        elif an==1:
+            table2.write(i,6,'OK')
+        else:
+            table2.write(i,6,'UKNOWN')
+        i+=1
+    table1.save('test.xls')
+
+def extract(sheetflag, file_path):
+    datatable=xlrd.open_workbook(file_path)
+    table=datatable.sheet_by_name(sheetflag)
+    i=1
+    data22=np.zeros((table.nrows-1,4))
+    for j in range(2,6):
+        for i in range(1,table.nrows):
+            flag=table.cell(i,j).value
+            a=strnum(flag)
+            data22[i-1,j-2]=a
+            i+=1
+        j+=1
+    return data22,datatable
+
+if __name__ == '__main__':
+    sheetflag='vlan-in-qos-profile' #the sheet store test data
+    file_path='D:\\anaconda project\\7360-test-520.xls' #the workbook path
+    train_data_path='D:\\anaconda project\\standard.txt'
+    sheet_num=12 #sheetflag number
+    (testdata,table)=extract(sheetflag,file_path)
+    traintree(testdata,train_data_path,table,sheet_num)
+
+
+
+
+
